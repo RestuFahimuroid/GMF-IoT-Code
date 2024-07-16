@@ -1,5 +1,5 @@
 ///////////////////ESP ------ 1////////////////////
-//        MATCHING FUNG GMF CEMARAN GAS          //
+//            PNBP GMF CEMARAN GAS               //
 //                    2024                       //
 //               HAK CIPTA KODE                  //
 //                                               //
@@ -18,11 +18,11 @@
 DHT dht(DHTPIN, DHTTYPE);
 
 // SSID dan Password WiFi
-const char* ssid = "Rescom Jember";
-const char* password = "kantorRESCOM@#123";
+const char* ssid = "KSI-STUDENT";
+const char* password = "12344321";
 
 //URL Server
-String URL_temperature = "http://is4ac.research-ai.my.id/public/temperture_data.php";
+String URL_temperature = "http://is4ac.research-ai.my.id/public/temperature_data.php";
 String URL_metana = "http://is4ac.research-ai.my.id/public/metana_data.php";
 String URL_humidity = "http://is4ac.research-ai.my.id/public/humidity_data.php";
 String URL_dioksida = "http://is4ac.research-ai.my.id/public/dioksida_data.php";
@@ -57,7 +57,7 @@ int mq135Value;
 int dioksida;
 
 unsigned long previousMillis = 0;  // variabel untuk menyimpan waktu terakhir
-const long interval = 30000;       // interval waktu (dalam milidetik)
+const long interval = 60000;       // interval waktu (dalam milidetik)
 
 // Fungsi untuk menginisialisasi
 void setup() {
@@ -138,7 +138,7 @@ void dataSensorToHTTP(int idalat, int nilaisensor, String URL) {
 
   auto httpCode = http.POST(postData);
   String payload = http.getString();
-
+  Serial.println(URL);
   Serial.println(postData);
   Serial.println(payload);
 
@@ -180,11 +180,11 @@ void sendDataSensor() {
       if (currentMillis - previousMillis >= interval) {
         // simpan waktu terakhir
         previousMillis = currentMillis;
-        dataSensorToHTTP(id_alat_iot, h, URL_temperature);
+        dataSensorToHTTP(id_alat_iot, t, URL_temperature);
         delay(5);
-        dataSensorToHTTP(id_alat_iot, t, URL_metana);
+        dataSensorToHTTP(id_alat_iot, h, URL_humidity);
         delay(5);
-        dataSensorToHTTP(id_alat_iot, mq135Value, URL_humidity);
+        dataSensorToHTTP(id_alat_iot, mq135Value, URL_metana);
         delay(5);
         dataSensorToHTTP(id_alat_iot, dioksida, URL_dioksida);
         delay(5);
