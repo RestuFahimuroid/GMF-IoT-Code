@@ -1,38 +1,42 @@
-///////////////////ESP 8266 1//////////////////////
-//            PNBP GMF CEMARAN GAS               //
-//                WEMOS D1 MINI                  //
-//                    2024                       //
-//               HAK CIPTA KODE                  //
-//                                               //
+///////////////////ESP32 1//////////////////////
+//            PNBP GMF CEMARAN GAS            //
+//                ESP32 WROOM                 //
+//                   2024                     //
+//               HAK CIPTA KODE               //
+//                                            //
 ///////////////////////////////////////////////////
-#include <ESP8266WiFi.h>
-#include <ESP8266HTTPClient.h>
+#include <WiFi.h>
+#include <HTTPClient.h>
 #include <DHT.h>
 #include <WiFiUdp.h>
 
-
-#define DHTPIN D2        // Pin untuk sensor DHT-11
-#define DHTTYPE DHT11    // Tipe sensor DHT-11
-#define MQ135PIN A0      // Pin untuk sensor MQ-135
-#define LEDindicator D4  //Built in LED
+#define DHTPIN 27          // Pin for the DHT-11 sensor
+#define DHTTYPE DHT21     // DHT-21 sensor type
+#define MQ135PIN 32       // Pin for the MQ-135 sensor (ADC1 channel)
+#define MQ4PIN 33
+#define MQ137PIN 33
+#define LEDindicator 2    // Built-in LED for ESP32
+#define LEDPIN_GREEN 17
+#define LEDPIN_RED 18
+#define LEDPIN_YELLOW 19
 
 DHT dht(DHTPIN, DHTTYPE);
 
-// SSID dan Password WiFi
+// SSID and WiFi password
 const char* ssid = "KSI-STUDENT";
 const char* password = "12344321";
 
-//URL Server
+// URL Server
 String URL_temperature = "http://is4ac.research-ai.my.id/public/temperature_data.php";
 String URL_metana = "http://is4ac.research-ai.my.id/public/metana_data.php";
 String URL_humidity = "http://is4ac.research-ai.my.id/public/humidity_data.php";
 String URL_dioksida = "http://is4ac.research-ai.my.id/public/dioksida_data.php";
 String URL_amonia = "http://is4ac.research-ai.my.id/public/amonia_data.php";
 
-//IP Local
+// Local IP
 String ip_local = "192.168.100.3";
 
-//URL Local
+// Local URL
 String URL_temperature_local = "http://" + ip_local + "/is4ac_local/temperature_data.php";
 String URL_metana_local = "http://" + ip_local + "/is4ac_local/metana_data.php";
 String URL_humidity_local = "http://" + ip_local + "/is4ac_local/humidity_data.php";
@@ -40,17 +44,17 @@ String URL_dioksida_local = "http://" + ip_local + "/is4ac_local/dioksida_data.p
 
 ///////////////////////////////////////////////////
 //
-//          KONFIGURASI ALAT
+//          DEVICE CONFIGURATION
 //
 //
 //////////////////////////////////////////////////
 
-int id_alat_iot = 2;              // Untuk identifikasi tiap alat
-const int tipe_data = 3;          //real = 1, dummy = 2, ammonia&dioksida&metana dummy =3
-const int metode_kirim_data = 1;  //Otomatis = 1, Manual = 2
-const int config_server = 1;      //Public =1, Local =2
+int id_alat_iot = 2;              // For identifying each device
+const int tipe_data = 3;          // real = 1, dummy = 2, ammonia&dioksida&metana dummy = 3
+const int metode_kirim_data = 1;  // Automatic = 1, Manual = 2
+const int config_server = 1;      // Public = 1, Local = 2
 
-//Ketik 1 Pada Serial Untuk Trigger Kirim Data Manual
+// Type 1 in Serial to Trigger Manual Data Sending
 ///////////////////////////////////////////////////
 
 int t;
@@ -59,10 +63,10 @@ int mq135Value;
 int dioksida;
 int amonia;
 
-unsigned long previousMillis = 0;  // variabel untuk menyimpan waktu terakhir
-const long interval = 60000;       // interval waktu (dalam milidetik)
+unsigned long previousMillis = 0;  // variable to store the last time
+const long interval = 60000;       // interval time (in milliseconds)
 
-// Fungsi untuk menginisialisasi
+// Function to initialize
 void setup() {
   Serial.begin(115200);
   dht.begin();
@@ -70,7 +74,7 @@ void setup() {
   digitalWrite(LEDindicator, LOW);
   delay(5);
   Serial.println("Connecting to WiFi...");
-  // Koneksi ke WiFi
+  // Connect to WiFi
   WiFi.begin(ssid, password);
   while (WiFi.status() != WL_CONNECTED) {
     delay(500);
@@ -84,9 +88,9 @@ void setup() {
   delay(5);
 }
 
-// Fungsi loop utama
+// Main loop function
 void loop() {
-  //CEK SENSOR
+  // CHECK SENSOR
   if (isnan(h) || isnan(t)) {
     Serial.println("Failed to read from DHT sensor!");
     return;
@@ -98,40 +102,41 @@ void loop() {
 }
 
 void tampilkan_konfigurasi() {
-  Serial.println("Konfigurasi Alat Saat Ini");
+  Serial.println("Current Device Configuration");
 
   if (tipe_data == 1 || tipe_data == 2) {
     if (tipe_data == 1) {
-      Serial.println("Data Menggunakan data Sensor");
+      Serial.println("Using Sensor Data");
     }
     if (tipe_data == 2) {
-      Serial.println("Data Menggunakan data Dummy");
+      Serial.println("Using Dummy Data");
     }
     if (tipe_data == 3) {
-      Serial.println("Data DHT sensor, data amonia, dioksia dummy");
+      Serial.println("DHT sensor data, ammonia, dioxide dummy data");
     }
   }
 
   if (metode_kirim_data == 1 || metode_kirim_data == 2) {
     if (metode_kirim_data == 1) {
-      Serial.println("Data dikirim Secara Otomasi dengan interval waktu");
+      Serial.println("Data sent Automatically at regular intervals");
     }
     if (metode_kirim_data == 2) {
-      Serial.println("Data dikirim secara manual menggunakan trigger");
+      Serial.println("Data sent manually using a trigger");
     }
   }
 
   if (config_server == 1 || config_server == 2) {
     if (config_server == 1) {
-      Serial.println("Menggunakan Server Public");
+      Serial.println("Using Public Server");
     }
     if (config_server == 2) {
-      Serial.println("Menggunakan Server Local");
+      Serial.println("Using Local Server");
     }
   }
   Serial.println(id_alat_iot);
   delay(5);
 }
+
 void dataSensorToHTTP(int idalat, int nilaisensor, String URL) {
   getDataSensor();
   delay(20);
@@ -164,7 +169,8 @@ void getDataSensor() {
     h = dht.readHumidity();
     t = dht.readTemperature();
     mq135Value = analogRead(MQ135PIN);
-    dioksida = mq135Value + 10;
+    dioksida = analogRead(MQ4PIN);
+    dioksida = analogRead(MQ137PIN);
     delay(5);
   }
   if (tipe_data == 2) {
@@ -186,13 +192,12 @@ void getDataSensor() {
 }
 
 void sendDataSensor() {
-
   if (config_server == 1) {
     if (metode_kirim_data == 1) {
       unsigned long currentMillis = millis();
 
       if (currentMillis - previousMillis >= interval) {
-        // simpan waktu terakhir
+        // save the last time
         previousMillis = currentMillis;
         dataSensorToHTTP(id_alat_iot, t, URL_temperature);
         delay(5);
@@ -211,7 +216,7 @@ void sendDataSensor() {
       if (Serial.available() > 0) {
         int data = Serial.parseInt();
         if (data == 1) {
-          Serial.println("Proses kirim ke server");
+          Serial.println("Sending data to server");
           dataSensorToHTTP(id_alat_iot, h, URL_temperature);
           delay(5);
           dataSensorToHTTP(id_alat_iot, t, URL_metana);
@@ -229,7 +234,7 @@ void sendDataSensor() {
       unsigned long currentMillis = millis();
 
       if (currentMillis - previousMillis >= interval) {
-        // simpan waktu terakhir
+        // save the last time
         previousMillis = currentMillis;
         dataSensorToHTTP(id_alat_iot, h, URL_temperature_local);
         delay(5);
@@ -246,7 +251,7 @@ void sendDataSensor() {
       if (Serial.available() > 0) {
         int data = Serial.parseInt();
         if (data == 1) {
-          Serial.println("Proses Kirim data Local");
+          Serial.println("Sending data to Local Server");
           dataSensorToHTTP(id_alat_iot, h, URL_temperature_local);
           delay(5);
           dataSensorToHTTP(id_alat_iot, t, URL_metana_local);
